@@ -1,0 +1,35 @@
+# --- RIIT on SMAC (Aligned with QSIM) ---
+
+# use epsilon greedy action selector
+action_selector: "epsilon_greedy"
+epsilon_start: 1.0
+epsilon_finish: 0.05
+epsilon_anneal_time: 50000
+
+runner: "episode"
+
+buffer_size: 5000
+
+# update the target network every {} episodes
+target_update_interval: 200
+
+# use the fmac_learner to train
+agent_output_type: "pi_logits"
+learner: "fmac_learner"
+double_q: True
+mixer: "qmix"
+mixing_embed_dim: 32
+hypernet_layers: 2
+hypernet_embed: 64
+
+
+# --- RIIT specific parameters ---
+mac: "lica_mac"
+critic_hidden_dim: 128
+critic_lr: 0.001
+lambd: 0.6
+entropy_coef: 0.03
+optimizer: 'adam'
+abs: True
+
+name: "riit"

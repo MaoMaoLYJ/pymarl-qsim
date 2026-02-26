@@ -1,0 +1,48 @@
+# --- Qplex specific parameters ---
+
+# use epsilon greedy action selector
+action_selector: "epsilon_greedy"
+epsilon_start: 1.0
+epsilon_finish: 0.05
+epsilon_anneal_time: 50000
+evaluation_epsilon: 0.0
+
+runner: "episode"
+
+buffer_size: 5000
+
+# update the target network every {} episodes
+target_update_interval_or_tau: 200
+
+obs_agent_id: True
+obs_last_action: False
+obs_individual_obs: False
+
+# use the dmaq_qatten_learner to train
+standardise_returns: False
+standardise_rewards: True
+
+# use the Q_Learner to train
+agent_output_type: "q"
+learner: "dmaq_qatten_learner"
+double_q: True
+mixer: "dmaq"
+use_rnn: True
+mixing_embed_dim: 32
+hypernet_embed: 64
+
+# --- Agent Network Configuration ---
+hidden_dim: 64
+
+# --- QPLEX specific parameters ---
+adv_hypernet_layers: 1
+adv_hypernet_embed: 64
+num_kernel: 4
+is_minus_one: True
+weighted_head: True
+is_adv_attention: True
+is_stop_gradient: True
+
+burn_in_period: 100
+
+name: "qplex_smacv2"
