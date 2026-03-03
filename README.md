@@ -116,3 +116,19 @@ python src/main.py --config=qsim_qmix --env-config=gymma with env_args.time_limi
 The specific hyperparameters for QSIM are defined in `src/config/algs/qsim_qmix.yaml` in both directories.
 
 For a full list of hyperparameters and experimental settings, please refer to the Appendix of our paper.
+
+## Cite QSIM
+
+If you use QSIM in your research, please cite the following paper:
+
+Yuanjun Li, Bin Zhang, Hao Chen, Zhouyang Jiang, Dapeng Li, and Zhiwei Xu. QSIM: Mitigating Overestimation in Multi-Agent Reinforcement Learning via Action Similarity Weighted Q-Learning, arXiv preprint arXiv:2602.22786, 2026.
+
+In BibTeX format:
+
+```tex
+@article{li2026qsim,
+  title={QSIM: Mitigating Overestimation in Multi-Agent Reinforcement Learning via Action Similarity Weighted Q-Learning},
+  author={Li, Yuanjun and Zhang, Bin and Chen, Hao and Jiang, Zhouyang and Li, Dapeng and Xu, Zhiwei},
+  journal={arXiv preprint arXiv:2602.22786},
+  year={2026}
+}
