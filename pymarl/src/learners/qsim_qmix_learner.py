@@ -45,6 +45,13 @@ class QsimQmixLearner:
 
         self.log_stats_t = -self.args.learner_log_interval - 1
 
+        # --- MODIFICATION: Prepare path for saving estimation_error ---
+        self.estimation_error_filename = f"{self.args.name}_{self.args.env_args['map_name']}_{self.args.seed}.txt"
+        self.save_dir = "estimation_error"
+        os.makedirs(self.save_dir, exist_ok=True)
+        self.estimation_error_filepath = os.path.join(self.save_dir, self.estimation_error_filename)
+        # ---
+
     def train(self, batch: EpisodeBatch, t_env: int, episode_num: int):
         # Get the relevant quantities
         rewards = batch["reward"][:, :-1]
@@ -56,6 +63,17 @@ class QsimQmixLearner:
         onehot_action = batch["actions_onehot"]
         state = batch["state"]
         obs_inputs = self._build_inputs(batch)
+
+        # --- MODIFICATION: Calculate True Discounted Returns ---
+        with th.no_grad():
+            full_rewards = batch["reward"]
+            full_terminated = batch["terminated"].float()
+            true_discounted_returns = th.zeros_like(full_rewards)
+            true_discounted_returns[:, -1] = full_rewards[:, -1]
+            for t in range(batch.max_seq_length - 2, -1, -1):
+                true_discounted_returns[:, t] = full_rewards[:, t] + self.args.gamma * true_discounted_returns[:, t+1] * (1 - full_terminated[:, t])
+            true_discounted_returns_for_log = true_discounted_returns[:, :-1]
+        # ---
 
         # Calculate estimated Q-Values
         mac_out = []
@@ -187,8 +205,24 @@ class QsimQmixLearner:
             self.logger.log_stat("grad_norm", grad_norm, t_env)
             mask_elems = mask.sum().item()
             self.logger.log_stat("td_error_abs", (masked_td_error.abs().sum().item()/mask_elems), t_env)
-            self.logger.log_stat("q_taken_mean", (chosen_action_qvals * mask).sum().item()/(mask_elems * self.args.n_agents), t_env)
-            self.logger.log_stat("target_mean", (targets * mask).sum().item()/(mask_elems * self.args.n_agents), t_env)
+            # --- MODIFICATION: Fix logging and add estimation_error ---
+            q_taken_mean_val = (chosen_action_qvals * mask).sum().item() / mask_elems
+            self.logger.log_stat("q_taken_mean", q_taken_mean_val, t_env)
+
+            target_mean_val = (targets * mask).sum().item() / mask_elems
+            self.logger.log_stat("target_mean", target_mean_val, t_env)
+
+            true_return_mean_val = (true_discounted_returns_for_log * mask).sum().item() / mask_elems
+            self.logger.log_stat("true_return_mean", true_return_mean_val, t_env) # Still log for info.json
+
+            # Calculate and log the estimation error
+            estimation_error_val = q_taken_mean_val - true_return_mean_val
+            self.logger.log_stat("estimation_error", estimation_error_val, t_env)
+            
+            # Append the estimation_error to our dedicated text file
+            with open(self.estimation_error_filepath, "a") as f:
+                f.write(f"{estimation_error_val}\n")
+            # ---
             self.log_stats_t = t_env
 
     def _update_targets(self):
